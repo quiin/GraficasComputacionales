@@ -1,7 +1,7 @@
 /*
- * Carlos Alejandro Reyna González			A01165824
- * Yael Yerid Araizaga Gracia				A01166495
- */
+* Carlos Alejandro Reyna González			A01165824
+* Yael Yerid Araizaga Gracia				A01166495
+*/
 
 #include <windows.h>
 #include <gl/glut.h>
@@ -21,26 +21,27 @@ float scorePosition = -EDGE_X + HUD_SPACING;
 float lifePosition = EDGE_X - HUD_SPACING;
 float scoreStartY = EDGE_Y - .2;
 float scoreEndY = EDGE_Y - .5;
-float lifeStartY =EDGE_Y - .5;
-float lifeEndY =  EDGE_Y - .2;
+float lifeStartY = EDGE_Y - .5;
+float lifeEndY = EDGE_Y - .2;
 bool doneOnce = false;
+int pickupCount = 0;
 
 Player player;						//Player representation
 Pickup pickupArray[COLOR_COUNT]{	//Array of pickup items	
-	{green}, 
-	{blue},
-	{red}, 
-	{black},
-	{purple} 
+	{ green },
+	{ blue },
+	{ red },
+	{ black },
+	{ purple }
 };
 Pickup * currentPickup = &pickupArray[pickupIndex];		//Pointer to current pickup item
 
 
 Direction teapotDirection = right; //Teapot direction
 
-/*
- * Moves an object around the screen
- */
+								   /*
+								   * Moves an object around the screen
+								   */
 void moveCyclic(Direction * current, float * toMove, float * speed) {
 	/*Move to right*/
 	if (*current == right) {
@@ -59,20 +60,20 @@ void moveCyclic(Direction * current, float * toMove, float * speed) {
 }
 
 /*
- * Returns true if current pickup item
- * is in bounds of the player sprite
- */
+* Returns true if current pickup item
+* is in bounds of the player sprite
+*/
 bool playerHasCollided() {
 	return
 		(currentPickup->y <= -EDGE_Y + player.radius) &&
-		((currentPickup->x >= player.x - player.radius) && currentPickup->x <= player.x + player.radius);
+		((currentPickup->x >= player.x - player.radius - .5) && currentPickup->x <= player.x + player.radius + .5);
 }
 
 /*
- * Restores the current pickup item to
- * its initial state and is replaced
- * for the next one in the array
- */
+* Restores the current pickup item to
+* its initial state and is replaced
+* for the next one in the array
+*/
 void refreshCurrentPickup() {
 	currentPickup->x = teapotMove;
 	currentPickup->y = TEAPOT_Y;
@@ -82,18 +83,18 @@ void refreshCurrentPickup() {
 }
 
 /*
- * Updates the HUD with the current score and lifes.
- */
+* Updates the HUD with the current score and lifes.
+*/
 void updateHUD() {
 
 	/* Display Score on screen */
 	/*for (int i = 0; i < player.itemsCollected; i++){
-		glLineWidth(2.5);
-		glColor3f(0, 0.0, 0.0);		
-		glBegin(GL_LINES);
-			glVertex3f(scorePosition + (i * HUD_SPACING), scoreStartY, Z_CONST);
-			glVertex3f(scorePosition + (i * HUD_SPACING), scoreEndY, Z_CONST);
-		glEnd();
+	glLineWidth(2.5);
+	glColor3f(0, 0.0, 0.0);
+	glBegin(GL_LINES);
+	glVertex3f(scorePosition + (i * HUD_SPACING), scoreStartY, Z_CONST);
+	glVertex3f(scorePosition + (i * HUD_SPACING), scoreEndY, Z_CONST);
+	glEnd();
 	}*/
 
 	/*Display Lifes*/
@@ -101,16 +102,16 @@ void updateHUD() {
 		glLineWidth(2.5);
 		glColor3f(0, 100, 0.0);
 		glBegin(GL_LINES);
-			glVertex3f(lifePosition - (i * HUD_SPACING), lifeStartY, Z_CONST);
-			glVertex3f(lifePosition - (i * HUD_SPACING), lifeEndY, Z_CONST);
+		glVertex3f(lifePosition - (i * HUD_SPACING), lifeStartY, Z_CONST);
+		glVertex3f(lifePosition - (i * HUD_SPACING), lifeEndY, Z_CONST);
 		glEnd();
 	}
-	
+
 }
 
 /* GLUT callback Handlers */
 static void resize(int width, int height)
-{	
+{
 	const float ar = (float)width / (float)height;
 
 	glViewport(0, 0, width, height);
@@ -125,7 +126,7 @@ static void resize(int width, int height)
 static void display(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
+
 	updateHUD();
 
 	if (isFirstTime) {
@@ -135,39 +136,50 @@ static void display(void)
 		currentPickup = &pickupArray[pickupIndex];
 		player = Player();
 		teapotMove = -EDGE_X;
-		teapotDirection = right;		
+		teapotDirection = right;
+		pickupCount = 0;
 	}
 
 	if (player.isAlive()) {
 
 		/*Render teapot*/
 		glPushMatrix();
-			glTranslatef(teapotMove, TEAPOT_Y, Z_CONST);
-			glColor3f(100, 0, 100);
-			glScalef(2, 1, 1);
-			glutSolidTeapot(TEAPOT_RADIUS);
+		glTranslatef(teapotMove, TEAPOT_Y, Z_CONST);
+		glColor3f(100, 0, 100);
+		glScalef(2, 1, 1);
+		glutSolidTeapot(TEAPOT_RADIUS);
 		glPopMatrix();
 
 		/*Render player*/
 		glPushMatrix();
-			glTranslatef(player.x, -EDGE_Y + player.radius, Z_CONST);
-			glColor3f(100, 0, 0);
-			glScalef(0.21, 0.09, 0.09);
-			glutSolidTorus(player.radius, 4, 4, 10);			
+		glTranslatef(player.x, -EDGE_Y + player.radius, Z_CONST);
+		glColor3f(100, 0, 0);
+		glScalef(0.21, 0.09, 0.09);
+		glutSolidTorus(player.radius, 4, 4, 10);
 		glPopMatrix();
 
-		/*Render Pickup*/		
-		if (playerHasCollided()) {			
-			currentPickup->applyEffect(&player);			
+		/*Render Pickup*/
+		if (playerHasCollided()) {
+			pickupCount++;
+			printf("pickup Count %d \n", pickupCount);
+			if (pickupCount == 30) {
+				player.lifes++;
+				pickupCount = 0;
+			}
+			currentPickup->applyEffect(&player);
 			refreshCurrentPickup();
-			updateHUD();			
+			updateHUD();
 		}
 		if (currentPickup->isBeyondLimits()) {
+			//CAMBIO pierde vidas si no agarra un buen pickup
+			if (currentPickup->isGood) {
+				player.lifes--;
+			}
 			refreshCurrentPickup();
 		}
 
 		currentPickup->render();
-		
+
 
 
 		/*Move teapot around the window*/
@@ -175,9 +187,13 @@ static void display(void)
 			moveCyclic(&teapotDirection, &teapotMove, &TEAPOT_SPEED);
 			currentPickup->y -= currentPickup->speed;
 		}
-	
-	} else{
-		exit(0);
+
+	}
+	else {
+		//CAMBIO se resetea el juego en vez de terminar cuando vidas = 0
+		isFirstTime = true;
+		isPaused = false;
+		//exit(0);
 	}
 	glutSwapBuffers();
 }
@@ -202,27 +218,27 @@ static void key(unsigned char key, int x, int y)
 		isPaused = false;
 		break;
 
-	/****** TESTING KEYS *******/
+		/****** TESTING KEYS *******/
 
-	/*Speed Increase*/
+		/*Speed Increase*/
 	case 'i':
 	case 'I':
 		player.increaseSpeed();
 		break;
 
-	/*Speed decrease*/
+		/*Speed decrease*/
 	case 'd':
 	case 'D':
 		player.decreaseSpeed();
 		break;
 
-	/*Life up*/
+		/*Life up*/
 	case 'u':
 	case 'U':
 		player.lifes++;
 		break;
 
-	/*Kill slowly D:*/
+		/*Kill slowly D:*/
 	case 'k':
 	case 'K':
 		player.lifes--;
@@ -257,30 +273,30 @@ static void idle(void)
 	glutPostRedisplay();
 }
 
-int main(int argc, char *argv[])
-{	
-		
-	glutInit(&argc, argv);
-	glutInitWindowSize(WINDOW_X, WINDOW_Y);
-	glutInitWindowPosition(50, 10);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
-
-	glutCreateWindow("Examen Primer Parcial");
-
-	glutReshapeFunc(resize);
-	glutDisplayFunc(display);
-	glutKeyboardFunc(key);
-	glutSpecialFunc(specialInput);
-	glutIdleFunc(idle);
-
-	glClearColor(1, 1, 1, 1);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
-
-	glEnable(GL_DEPTH_TEST);
-
-
-	glutMainLoop();
-
-	return EXIT_SUCCESS;
-}
+//int main(int argc, char *argv[])
+//{
+//
+//	glutInit(&argc, argv);
+//	glutInitWindowSize(WINDOW_X, WINDOW_Y);
+//	glutInitWindowPosition(50, 10);
+//	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+//
+//	glutCreateWindow("Examen Primer Parcial");
+//
+//	glutReshapeFunc(resize);
+//	glutDisplayFunc(display);
+//	glutKeyboardFunc(key);
+//	glutSpecialFunc(specialInput);
+//	glutIdleFunc(idle);
+//
+//	glClearColor(1, 1, 1, 1);
+//	glEnable(GL_CULL_FACE);
+//	glCullFace(GL_BACK);
+//
+//	glEnable(GL_DEPTH_TEST);
+//
+//
+//	glutMainLoop();
+//
+//	return EXIT_SUCCESS;
+//}

@@ -118,6 +118,7 @@
     <ClCompile Include="Exam1\Pickup.cpp" />
     <ClCompile Include="Exam1\Player.cpp" />
     <ClCompile Include="Shapes.cpp" />
+    <ClCompile Include="SistemaSolar.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Exam1\Player.h" />
